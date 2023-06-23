@@ -1,5 +1,4 @@
 from config import *
-from imports import *
 
 # changing the font size:
 # plt.rcParams.update({'font.size': 15})
