@@ -34,9 +34,11 @@ def gen_working_sub_dir(run_no):
     path_creator(SUB_DIR)
     return SUB_DIR
 
-def initial_setup(run_no):
+def initial_setup(run_no, dir = None):
     if not common_RUNNING_ON_COLAB:
-        file_path = gen_working_sub_dir(run_no) + "message.log"
+        if dir == None:
+            dir = gen_working_sub_dir(run_no)
+        file_path = dir + "message.log"
         print(file_path)
         LOG_FILE = open(file_path,"w")
         sys.stdout = LOG_FILE

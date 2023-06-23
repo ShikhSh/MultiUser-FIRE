@@ -1,11 +1,11 @@
-common_TRIALS = 15
-common_TRIAL_LEN = 4000#50000#500
+common_TRIALS = 2#15
+common_TRIAL_LEN = 4#4000#50000#500
 
-common_NUM_ACCESS_POINTS = 9
-common_NUM_USERS = 15#20
+common_NUM_ACCESS_POINTS = 3#9
+common_NUM_USERS = 4#15#20
 
 # Run the algorithm multiple times to take an avg for the reward values and graphs
-common_TOT_RUNS = 5
+common_TOT_RUNS = 2#5
 
 # ONLINE:
 common_USERS_TO_CARE_ABOUT = common_NUM_USERS

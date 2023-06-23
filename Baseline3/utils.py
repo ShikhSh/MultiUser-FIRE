@@ -3,9 +3,6 @@ from constants import *
 Transition = namedtuple('Transition',
                         ('state', 'action', 'next_state', 'reward'))
 
-def conv_to_tensor(x):
-  return torch.tensor([[x]], device=device, dtype = torch.float32)
-
 class ReplayMemory(object):
 
     def __init__(self, capacity):
@@ -28,51 +25,6 @@ class ReplayMemory(object):
 
     def __len__(self):
         return len(self.memory)
-    
-# Utility function:
-def path_creator(dir_path):
-    if not os.path.exists(dir_path):
-        os.makedirs(dir_path)
-
-def create_dir():
-    dir_path = None
-    if not RUNNING_ON_COLAB:
-        dir_path = DIAG_DIRECTORY
-        path_creator(dir_path)
-
-        dir_path += "APs_" + str(NUM_ACCESS_POINTS) + "/"
-        path_creator(dir_path)
-        
-        dir_path += "Users_" + str(NUM_USERS) + "/"
-        path_creator(dir_path)
-        
-        dir_path += "Rew_" + str(abs(NEGATIVE_REWARD)) + "/"
-        path_creator(dir_path)
-        
-        dir_path += "Onl_Users_" + str(USERS_TO_CARE_ABOUT) + "/"
-        path_creator(dir_path)
-    return dir_path
-WORKING_DIR = create_dir()
-
-def gen_working_sub_dir():
-    run_no = os.environ["RUN_NO"]
-    SUB_DIR = WORKING_DIR + run_no + "/"
-    path_creator(SUB_DIR)
-    return SUB_DIR
-
-def initial_setup(run_no):
-    if not RUNNING_ON_COLAB:
-        os.environ["RUN_NO"] = str(run_no)
-        file_path = gen_working_sub_dir() + "message.log"
-        print(file_path)
-        LOG_FILE = open(file_path,"w")
-        sys.stdout = LOG_FILE
-
-def clean():
-    if not RUNNING_ON_COLAB:
-        LOG_FILE = sys.stdout
-        sys.stdout = sys.__stdout__
-        LOG_FILE.close()
 
 def gen_per_user_states_list():
     rsList = set()

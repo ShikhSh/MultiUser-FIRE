@@ -65,6 +65,27 @@ class BL3_Online_Algo():
         self.user_loads = USER_LOADS
         print("USERS to care about = " + str(self.users_to_care_about))
     
+    def find_mean(self, arr):
+        if len(arr) > 0:
+            return np.mean(arr)
+        else:
+            return 0
+    
+    def gen_results(self):
+        self.mean_Reward_online = self.find_mean(self.Reward_online)
+    
+        self.mean_REreward_online = self.find_mean(self.REreward_online)
+        self.mean_REmigration_online = self.find_mean(self.REmigration_online)
+        self.mean_REdelay_online = self.find_mean(self.REdelay_online)
+        self.mean_REstorage_online = self.find_mean(self.REstorage_online)
+        self.mean_REcompDelay_online = self.find_mean(self.REcompDelay_online)
+        
+        self.mean_NSreward_online = self.find_mean(self.NSreward_online)
+        self.mean_NSmigration_online = self.find_mean(self.NSmigration_online)
+        self.mean_NSdelay_online = self.find_mean(self.NSdelay_online)
+        self.mean_NSstorage_online = self.find_mean(self.NSstorage_online)
+        self.mean_NScompDelay_online = self.find_mean(self.NScompDelay_online)
+
     def run(self, trained_obj):
         for t in range(0,totalTS):
             
@@ -182,3 +203,4 @@ class BL3_Online_Algo():
                     self.runningAvg_online[t]=np.average(self.Reward_online[0:t])
                 else:
                     self.runningAvg_online[t]=np.average(self.Reward_online[t-K:t])
+        self.gen_results()

@@ -1,5 +1,3 @@
-# import os
-# os.environ["RUN_NO"] = "INIT"
 from main import *
 from plots import *
 from online_main import *
@@ -107,7 +105,10 @@ class Runner_main:
         self.generate_results()
         gen_plot_rew(self,dir=WORKING_DIR)
         gen_plot_runningAvg(self,dir=WORKING_DIR)
+
+        initial_setup(None, dir = WORKING_DIR)
         gen_online_plots(self, dir = WORKING_DIR)
+        clean()
 
 if __name__ == '__main__':
     runner = Runner_main()
