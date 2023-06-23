@@ -1,0 +1,11 @@
+Baseline 2 (new scenario)
+  - No Back-Up:
+    - Back-ups removed
+  - No importance sampling:
+    - Imp Wts
+    - Anomaly Sampling Distr
+    - T_anomaly
+    - U_normal
+
+To run the program:
+python3 run.py
