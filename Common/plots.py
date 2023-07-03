@@ -189,31 +189,11 @@ def gen_online_plots(online_obj, dir):
     path = dir + "Online_Running_Avg.jpg"
     gen_basic_plot(None, online_obj.runningAvg_online, path, x_label = 'Reward, Running Average', y_label = 'No. of Iterations, x10^3')
     
+    # path = dir + "Online_NS_Rew.jpg"
+    # gen_basic_plot(None, online_obj.NSreward_online, path, x_label = 'No. of Iterations, x10^3', y_label = 'Normal States')
 
-
-    # plt.plot(online_obj.NSreward_online)
-    # plt.ylabel('Normal States')
-    # if RUNNING_ON_COLAB:
-    #     plt.show()
-    # else:
-    #     name = SUB_DIR + "Online_NS_Rew.jpg"
-    #     plt.savefig(name)
-    # plt.clf()
-    path = dir + "Online_NS_Rew.jpg"
-    gen_basic_plot(None, online_obj.NSreward_online, path, x_label = 'No. of Iterations, x10^3', y_label = 'Normal States')
-    
-
-
-    # plt.plot(online_obj.REreward_online)
-    # plt.ylabel('Rare Events States')
-    # if RUNNING_ON_COLAB:
-    #     plt.show()
-    # else:
-    #     name = SUB_DIR + "Online_RS_Rew.jpg"
-    #     plt.savefig(name)
-    # plt.clf()
-    path = dir + "Online_RS_Rew.jpg"
-    gen_basic_plot(None, online_obj.REreward_online, path, x_label = 'No. of Iterations, x10^3', y_label = 'Rare Events States')
+    # path = dir + "Online_RS_Rew.jpg"
+    # gen_basic_plot(None, online_obj.REreward_online, path, x_label = 'No. of Iterations, x10^3', y_label = 'Rare Events States')
 
 
     print('avg reward across time', online_obj.mean_Reward_online)

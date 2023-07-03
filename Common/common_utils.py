@@ -32,10 +32,9 @@ def create_dir():
         dir_path += "Onl_Users_" + str(common_USERS_TO_CARE_ABOUT) + "/"
         path_creator(dir_path)
     return dir_path
-WORKING_DIR = create_dir()
 
 def gen_working_sub_dir(run_no):
-    SUB_DIR = WORKING_DIR + str(run_no) + "/"
+    SUB_DIR = create_dir() + str(run_no) + "/"
     path_creator(SUB_DIR)
     return SUB_DIR
 

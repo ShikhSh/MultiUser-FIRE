@@ -1,14 +1,16 @@
+import sys
+ 
+# setting path
+sys.path.append('./MainAlgo')
+sys.path.append('./Common')
+sys.path.append('./Baseline3')
+sys.path.append('./Baseline2')
+sys.path.append('./Baseline1')
+
 from common_config import *
 from online_const import *
 from common_utils import *
 from plots import *
-
-import sys
- 
-# setting path
-sys.path.append('../MainAlgo')
-sys.path.append('../Baseline3')
-sys.path.append('../Baseline2')
 
 class Coalate_Results:
     def __init__(self):
@@ -44,8 +46,8 @@ class Coalate_Results:
         self.runningAvg = self.stack_n_mean(self.runningAvg)
         self.Reward_online = self.stack_n_mean(self.Reward_online)
         self.runningAvg_online = self.stack_n_mean(self.runningAvg_online)
-        self.NSreward_online = self.stack_n_mean(self.NSreward_online)
-        self.REreward_online = self.stack_n_mean(self.REreward_online)
+        # self.NSreward_online = self.stack_n_mean(self.NSreward_online)
+        # self.REreward_online = self.stack_n_mean(self.REreward_online)
 
         self.mean_Reward_online = mean(self.mean_Reward_online)
         self.mean_REreward_online = mean(self.mean_REreward_online)
@@ -65,10 +67,13 @@ class Coalate_Results:
 
         self.Rewards.append(trainer.Rewards)
         self.runningAvg.append(trainer.runningAvg)
+
         self.Reward_online.append(online_obj.Reward_online)
         self.runningAvg_online.append(online_obj.runningAvg_online)
-        self.NSreward_online.append(online_obj.NSreward_online)
-        self.REreward_online.append(online_obj.REreward_online)
+        # self.min_ns_rew_len = self.min_ns_rew_len if len(online_obj.NSreward_online)
+        # self.min_re_rew_len = self.min_re_rew_len if len(online_obj.REreward_online)
+        # self.NSreward_online.append(online_obj.NSreward_online)
+        # self.REreward_online.append(online_obj.REreward_online)
 
         self.mean_Reward_online.append(online_obj.mean_Reward_online)
         self.mean_REreward_online.append(online_obj.mean_REreward_online)
@@ -87,17 +92,17 @@ class Coalate_Results:
         path = None
         if n<2:
             print("No directory path passed to coalate, using WORKING DIR")
-            path = WORKING_DIR
-        else:
-            path = sys.argv[1]
+            return
+        path = sys.argv[1]
         
         # the path which is scanned for the objects of various runs
-        iteration_dirs = [filename for filename in os.listdir(path) if os.path.isdir(os.path.join(path,filename))]
-
+        iteration_dirs = [os.path.join(path,filename) for filename in os.listdir(path) if os.path.isdir(os.path.join(path,filename))]
+        print(iteration_dirs)
+        breakpoint()
         for sub_dir in iteration_dirs:
             # open pkl files in these, load the objects, add to class variables
-            print(sub_dir)
-            self.load_data_from_dir(path + sub_dir + "/")
+            print(sub_dir + "/")
+            self.load_data_from_dir(sub_dir + "/")
         
         # now we have all the trained and online algorithms with us,
         # find averages for them, and generate results
@@ -110,11 +115,12 @@ class Coalate_Results:
         # Earlier, the plots were plotted iterating over the users
         # Same plots can be plotted after averaging over the 3rd dimension, which is the user's dimension
         self.generate_results()
-        gen_plot_rew(self,dir=WORKING_DIR)
-        gen_plot_runningAvg(self,dir=WORKING_DIR)
+        breakpoint()
+        gen_plot_rew(self,dir=path)
+        gen_plot_runningAvg(self,dir=path)
 
-        initial_setup(None, dir = WORKING_DIR)
-        gen_online_plots(self, dir = WORKING_DIR)
+        initial_setup(None, dir = path)
+        gen_online_plots(self, dir = path)
         clean()
 
 if __name__ == '__main__':

@@ -29,6 +29,7 @@ class Runner_BL2:
         clean()
 
     def run_program(self):
+        WORKING_DIR = create_dir()
         starting_dir = 0
         if not self.start_afresh and len(os.listdir(WORKING_DIR)):
             starting_dir = int(max(os.listdir(WORKING_DIR))) + 1
