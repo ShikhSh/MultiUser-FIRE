@@ -10,6 +10,7 @@ import random
 import matplotlib
 from collections import namedtuple, deque
 from itertools import count
+import pickle
 
 import torch
 import torch.nn as nn

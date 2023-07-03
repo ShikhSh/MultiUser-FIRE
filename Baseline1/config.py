@@ -13,6 +13,8 @@ NUM_USERS = common_NUM_USERS#15#20
 # Run the algorithm multiple times to take an avg for the reward values and graphs
 TOT_RUNS = common_TOT_RUNS#5
 
+START_AFRESH = False
+
 # ONLINE:
 USERS_TO_CARE_ABOUT = common_USERS_TO_CARE_ABOUT#NUM_USERS
 

@@ -10,6 +10,8 @@ TRIAL_LEN = common_TRIAL_LEN#4000#50000#500
 NUM_ACCESS_POINTS = common_NUM_ACCESS_POINTS#9
 NUM_USERS = common_NUM_USERS#15#20
 
+START_AFRESH = False
+
 # Run the algorithm multiple times to take an avg for the reward values and graphs
 TOT_RUNS = common_TOT_RUNS#5
 

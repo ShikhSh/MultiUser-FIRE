@@ -1,3 +1,20 @@
+#! /usr/bin/bash
+
+cd MainAlgo/
+python3 test.py > test.txt
+echo "HEY"
+
+/MainAlgo/diags/APs_3/Users_4/Rew_1500/Onl_Users_4/
+cd ../Common
+python3 coalate_results.py "../MainAlgo/diags/APs_3/Users_4/Rew_1500/Onl_Users_4/"
+
+python3 run.py
+echo "2 iterations done"
+python3 run.py
+echo "4 iterations done"
+
+-------------------------------------------------------------------------------
+
 Jun 9th:
 Draw diagrams for the working of the model.
 Explanation of the model and the use of the importance weight and the rewards:
@@ -13,6 +30,10 @@ TODOs:
 6. How is reward & imp_wts used to update the network?
 1. Baselines -> to be implemented on the server
 --------------------------------
+June 23:
+- Results
+- The three graphs averaged over 5 runs.
+
 7. Write a paragraph about working and results of Multi-User DQN.
 2. Run everything for 5 times and take an average
 3. Plot the comparison graphs -> with error margins
@@ -25,6 +46,7 @@ TODOs:
 7. Draw a diagram explaining the working.
 8. Save and load a model -> CMD LINE
 
+9. Subtiled and captions, small paragraph
 ===================================================
 
 To change the configuration of the project:
