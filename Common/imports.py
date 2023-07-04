@@ -22,7 +22,7 @@ import gc
 
 # Online
 from scipy.special import softmax
-from statistics import mean
+from statistics import mean, stdev
 
 # if gpu is to be used
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

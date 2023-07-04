@@ -9,6 +9,7 @@ class Runner_BL2:
 
     def run_1_iteration(self, run_no):
         print("RUNNING BL2: please check logs file for more")
+        
         initial_setup(run_no)
         sub_dir = gen_working_sub_dir(run_no)
 
@@ -20,12 +21,13 @@ class Runner_BL2:
         trainer_model = TrainerModel(trainer.Rewards, trainer.runningAvg)
         save_object( sub_dir + "trainer_obj.pkl", trainer_model)
 
-        # CHANGE:
         online_obj = BL2_Online_Algo(users_to_care_about = USERS_TO_CARE_ABOUT)
         online_obj.run(trainer)
         gen_online_plots(online_obj, sub_dir)
-        save_object( sub_dir + "online_obj.pkl", online_obj)
 
+        online_model = OnlineModel(online_obj)
+        save_object( sub_dir + "online_obj.pkl", online_model)
+        
         clean()
 
     def run_program(self):
@@ -38,17 +40,5 @@ class Runner_BL2:
             self.run_1_iteration( run_no= i + starting_dir)
 
 if __name__ == '__main__':
-    # print("RUNNING BL2: please check logs file for more")
-    # initial_setup()
-    # obj = BL2_RLalgo()
-    # obj.run_algo()
-    # # obj.gen_plot()
-    # gen_plot_rew(obj)
-    # gen_plot_runningAvg(obj)
-
-    # online_obj_curr = BL2_Online_Algo(users_to_care_about = USERS_TO_CARE_ABOUT)
-    # online_obj_curr.run(obj)
-    # gen_online_plots(online_obj_curr)
-    # clean()
     runner = Runner_BL2()
     runner.run_program()

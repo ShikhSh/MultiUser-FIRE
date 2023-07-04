@@ -1,3 +1,7 @@
+"""
+Plot are present in the final notebook.
+"""
+
 from common_utils import *
 def gen_plot(obj):
     gen_plot_rew(obj)
@@ -8,53 +12,40 @@ def gen_plot(obj):
 A generic function to create plots and save them at the provided path.
 """
 def gen_basic_plot(items_count, var, path, x_label = '', y_label = ''):
-        if items_count is None:
-            plt.plot(var,'.')
-        else:
-            for i in range(items_count):
-                plt.plot(var[i],'.')
-        
-        plt.ylabel(y_label,fontsize=15)
-        plt.xlabel(x_label,fontsize=15)
-        # plt.xticks([10000,20000,30000,40000,50000,60000,70000,80000],['10','20','30','40','50', '60', '70', '80'])
-        if common_RUNNING_ON_COLAB:
-            plt.show()
-        else:
-            plt.savefig(path)
-        plt.clf()
+    if items_count is None:
+        plt.plot(var,'.')
+    else:
+        for i in range(items_count):
+            plt.plot(var[i],'.')
+    
+    plt.ylabel(y_label,fontsize=15)
+    plt.xlabel(x_label,fontsize=15)
+    # plt.xticks([10000,20000,30000,40000,50000,60000,70000,80000],['10','20','30','40','50', '60', '70', '80'])
+    if common_RUNNING_ON_COLAB:
+        plt.show()
+    else:
+        plt.savefig(path)
+    plt.clf()
+
+def gen_basic_bar_plot(path,x, y, yerr,  x_label = '', y_label = ''):
+    plt.clf()
+
+    plt.bar(x ,y, yerr=yerr, align='center', alpha=0.5, ecolor='black', capsize=10, width=0.5, color=['hotpink','lightblue','lightgreen','gold'], edgecolor='k')
+    plt.ylabel(y_label,fontsize=15)
+    plt.xlabel(x_label,fontsize=15)
+    
+    if common_RUNNING_ON_COLAB:
+        plt.show()
+    else:
+        plt.savefig(path)
 
 def gen_plot_rew(obj, dir):
     path = dir + "Reward.jpg"
     gen_basic_plot(obj.numUsers, obj.Rewards, path, x_label = 'Reward', y_label = 'No. of Iterations, x10^3')
-        # for u in range(obj.numUsers):
-        #     plt.plot(obj.Rewards[u],'.')
-        # plt.ylabel('Reward',fontsize=15)
-        # plt.xlabel('No. of Iterations, x10^3',fontsize=15)
-        # # plt.xticks([10000,20000,30000,40000,50000,60000,70000,80000],['10','20','30','40','50', '60', '70', '80'])
-        # if RUNNING_ON_COLAB:
-        #     plt.show()
-        # else:
-            
-        #     name = gen_working_sub_dir() + "Reward.jpg"
-        #     plt.savefig(name)
-        # plt.clf()
         
 def gen_plot_runningAvg(obj, dir):
         path = dir + "RunningAvg.jpg"
         gen_basic_plot(obj.numUsers, obj.runningAvg, path, x_label = 'Reward, Running Average', y_label = 'No. of Iterations, x10^3')
-    
-        # #print('avg reward across time', np.mean(Reward))
-        # for u in range(obj.numUsers):
-        #     plt.plot(obj.runningAvg[u])
-        # plt.ylabel('Reward, Running Average')
-        # plt.xlabel('No. of Iterations, 10^3')
-        # # plt.xticks([1000, 5000, 10000, 15000, 20000, 25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000],['1', '5', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55', '60'])
-        # if RUNNING_ON_COLAB:
-        #     plt.show()
-        # else:
-        #     name = gen_working_sub_dir() + "RunningAvg.jpg"
-        #     plt.savefig(name)
-        # plt.clf()
 
 def gen_plot_Eps_T_U(obj, dir):
         
@@ -271,3 +262,30 @@ def gen_online_plots(online_obj, dir):
     #     print(' mean RE Comp Cost:', mean(online_obj.NScompDelay_online))
     # else:
     #     print("**NO RE COMP_DELAY COST**")
+
+def generate_bar_graphs(coalated_results, dir):
+    x = ['ImDQL', 'NIS', 'WBA', 'RES']
+    
+    path = dir + "rewards.jpg"
+    y = []
+    yerr = []
+    for algo in ALGO_NAMES:
+        y.append(-1*coalated_results.algo_names_to_objects[algo].mean_Reward_online)
+        yerr.append(coalated_results.algo_names_to_objects[algo].stdev_Reward_online)
+    gen_basic_bar_plot(path,x, y, yerr,  x_label = 'Algorithm', y_label = 'Average Cost')
+
+    path = dir + "re_rewards.jpg"
+    y = []
+    yerr = []
+    for algo in ALGO_NAMES:
+        y.append(-1*coalated_results.algo_names_to_objects[algo].mean_REreward_online)
+        yerr.append(coalated_results.algo_names_to_objects[algo].stdev_REreward_online)
+    gen_basic_bar_plot(path,x, y, yerr,  x_label = 'Algorithm', y_label = 'Average Cost, Rare State')
+
+    path = dir + "ns_rewards.jpg"
+    y = []
+    yerr = []
+    for algo in ALGO_NAMES:
+        y.append(-1*coalated_results.algo_names_to_objects[algo].mean_NSreward_online)
+        yerr.append(coalated_results.algo_names_to_objects[algo].stdev_NSreward_online)
+    gen_basic_bar_plot(path,x, y, yerr,  x_label = 'Algorithm', y_label = 'Average Cost, Normal State')

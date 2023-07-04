@@ -51,3 +51,5 @@ echo "8 iterations done"
 python3 run.py
 echo "10 iterations done"
 cd ..
+
+python3 coalate_results.py
