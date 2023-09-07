@@ -17,10 +17,16 @@ def gen_basic_plot(items_count, var, path, x_label = '', y_label = ''):
     else:
         for i in range(items_count):
             plt.plot(var[i],'.')
+
     
-    plt.ylabel(y_label,fontsize=15)
-    plt.xlabel(x_label,fontsize=15)
+    plt.rc('ytick', labelsize=18)
+    plt.rc('xtick', labelsize=18)
+
+    plt.ylabel(y_label,fontsize=22)
+    plt.xlabel(x_label,fontsize=22)
     # plt.xticks([10000,20000,30000,40000,50000,60000,70000,80000],['10','20','30','40','50', '60', '70', '80'])
+    plt.tight_layout()
+
     if common_RUNNING_ON_COLAB:
         plt.show()
     else:
@@ -31,8 +37,12 @@ def gen_basic_bar_plot(path,x, y, yerr,  x_label = '', y_label = ''):
     plt.clf()
 
     plt.bar(x ,y, yerr=yerr, align='center', alpha=0.5, ecolor='black', capsize=10, width=0.5, color=['hotpink','lightblue','lightgreen','gold'], edgecolor='k')
-    plt.ylabel(y_label,fontsize=15)
-    plt.xlabel(x_label,fontsize=15)
+    plt.rc('ytick', labelsize=18)
+    plt.rc('xtick', labelsize=18)
+    
+    plt.ylabel(y_label,fontsize=22)
+    plt.xlabel(x_label,fontsize=22)
+    plt.tight_layout()
     
     if common_RUNNING_ON_COLAB:
         plt.show()
@@ -264,7 +274,7 @@ def gen_online_plots(online_obj, dir):
     #     print("**NO RE COMP_DELAY COST**")
 
 def generate_bar_graphs(coalated_results, dir):
-    x = ['ImDQL', 'NIS', 'WBA', 'RES']
+    x = ['IS-ReD', 'QL-NIS', 'QL-NB', 'QL-NRE']
     
     path = dir + "rewards.jpg"
     y = []
