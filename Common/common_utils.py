@@ -60,6 +60,16 @@ def create_dir(dir_path = None, generate_path = True):
         
         dir_path += "Onl_Users_" + str(common_USERS_TO_CARE_ABOUT) + "/"
         path_creator(dir_path, generate_path)
+
+        dir_path += "CompDelay_Scale_" + str(common_COMPUTATIONAL_DELAY_SCALING_FACTOR) + "/"
+        path_creator(dir_path, generate_path)
+
+        if LOCATION_BASED_FAILURE_ENABLED:
+            dir_path += "LocBasedRes" + str(abs(common_FAILED_AP_SERV_LOC_REW)) + "/"
+        else:
+            dir_path += "NoLocBasedFailures" + "/"
+        path_creator(dir_path, generate_path)
+
     return dir_path
 
 def gen_working_sub_dir(run_no):

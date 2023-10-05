@@ -10,8 +10,6 @@ class BL2_RLalgo:
         self.dqn_agent=DQN_wrapper()
         # env details!!
         self.numAP=NUM_ACCESS_POINTS
-        # self.numActions=NUM_ACTIONS
-        # self.numStates=NUM_STATES
         self.numStatesPerUser = NUM_STATES_PER_USER
         self.numActionsPerUser = NUM_ACTIONS_PER_USER
         self.numUsers = NUM_USERS
@@ -60,19 +58,41 @@ class BL2_RLalgo:
         self.stateList=PER_USER_STATE_LIST
         # self.rsList=RARE_STATES
         print(self.actList)
+
+        # Keep a track of the failed APs and how long will they take to recover
+        self.failed_APs = {}
     
+    """
+    Updates the failed location at every time step
+    """
+    def update_failed_locations(self):
+        if not LOCATION_BASED_FAILURE_ENABLED:
+            return
+        for key in list(self.failed_APs):
+            value = self.failed_APs[key]
+            if value <= 1:
+                self.failed_APs.pop(key, None)
+            else:
+                self.failed_APs[key] = value - 1
+    """
+    Adds a failed state to 
+    """
+    def insert_failed_location(self, ap):
+        if ap in common_WEAK_AP_LIST and LOCATION_BASED_FAILURE_ENABLED:
+            self.failed_APs[ap] = 2
+
     def env(self, cur_states, actions, t):
-        # self.whichState[t]=cur_state
-        # self.countState[cur_state]+=1
-        # user_in_state = int(self.stateList[cur_state][0])
-        random_nos_aps = np.random.rand(self.numAP)
         # curr_back_up_loc = []
         all_users_new_state = []
         all_users_rew = []
         all_users_service_loc = []
         self.ap_user_load = np.zeros((self.numAP))
+
+        random_nos_aps = np.random.rand(self.numAP)
+
+        self.update_failed_locations()
+
         for user in range(self.numUsers):
-            user_reward = 0
             user_state = cur_states[user]
             user_action = actions[user]
             prevUserLoc=int(self.stateList[user_state][0])
@@ -80,23 +100,41 @@ class BL2_RLalgo:
             newSvcLoc=int(self.actList[user_action])
             # backupLoc=int(self.actList[user_action][1]) # initialization
             all_users_service_loc.append(newSvcLoc)
+            self.ap_user_load[newSvcLoc] += self.user_loads[user]
+            # user_prev_backup_loc = self.prev_backup_loc[user]
+            
+            user_reward = 0
+            
             storCost=0
             # if backupLoc!=self.noBackup:
             #     storCost=self.storageCost[backupLoc]
+
+            #     backup_migration_cost = 0
+            #     if user_prev_backup_loc != self.noBackup and backupLoc!=self.noBackup and user_prev_backup_loc != backupLoc:#second condition is true for else block
+            #         backup_migration_cost = self.migrationCost[user_prev_backup_loc,backupLoc]
+
+            migration_cost=self.migrationCost[prevSvcLoc,int(newSvcLoc)]
+
             newUserLoc=np.random.choice(np.arange(0,self.numAP), 1, replace=False, p=self.pr_lu_trans[prevUserLoc,:])
-            self.ap_user_load[newSvcLoc] += self.user_loads[user]
+            
             # self.eligibility[cur_state,action,t]=eligibility[cur_state,action,t]+1
-            # user_prev_backup_loc = self.prev_backup_loc[user]
+            
             #if random number is smaller than the sampling prob, rare event has occured
-            if random_nos_aps[prevSvcLoc] < self.actualEps:
+            
+            serv_loc_down = False
+            if LOCATION_BASED_FAILURE_ENABLED and newSvcLoc in self.failed_APs:
+                user_reward += common_FAILED_AP_SERV_LOC_REW
+                serv_loc_down = True
+
+            rare_event_occured = random_nos_aps[prevSvcLoc] < self.actualEps
+
+            #if random number is smaller than the sampling prob, rare event has occured
+            if serv_loc_down or rare_event_occured:
                 # failureLoc= self.actList[user_action][0]
                 # check if there is backup
                 # if backupLoc==self.noBackup:
-                user_reward = NEGATIVE_REWARD-self.migrationCost[prevSvcLoc,newSvcLoc]
+                user_reward += NEGATIVE_REWARD-migration_cost
                 # else:
-                #     backup_migration_cost = 0
-                #     if user_prev_backup_loc != self.noBackup and backupLoc!=self.noBackup and user_prev_backup_loc != backupLoc:#second condition is true for else block
-                #         backup_migration_cost = self.migrationCost[user_prev_backup_loc,backupLoc]
                 #     if backupLoc==failureLoc: # we dont want this to happen.
                 #         user_reward = NEGATIVE_REWARD-self.migrationCost[prevSvcLoc,newSvcLoc]-storCost-backup_migration_cost
                 #     else:
@@ -104,15 +142,15 @@ class BL2_RLalgo:
 
                 new_state=get_state_id(newUserLoc, newSvcLoc, 1)                
                 # self.importanceWeight[user, user_state]=1.0*self.actualEps/self.anomalySamplingDist[user, user_state]
-
+                
+                if not serv_loc_down and LOCATION_BASED_FAILURE_ENABLED and rare_event_occured:
+                    self.insert_failed_location(newSvcLoc)
+            
             else: # no rare event has occured.
-                # backup_migration_cost = 0
-                # if user_prev_backup_loc != self.noBackup and backupLoc!=self.noBackup and user_prev_backup_loc != backupLoc:#second condition is true for else block
-                #     backup_migration_cost = self.migrationCost[user_prev_backup_loc,backupLoc]
-                MigrationCost=self.migrationCost[prevSvcLoc,int(newSvcLoc)]
+                
                 CommDelayCost=self.commDelay[newUserLoc,int(newSvcLoc)]
                 
-                user_reward = (-MigrationCost-CommDelayCost)-storCost #- backup_migration_cost
+                user_reward += (-migration_cost-CommDelayCost)-storCost #- backup_migration_cost
 
                 new_state=get_state_id(newUserLoc, newSvcLoc, 0)
             
@@ -123,9 +161,6 @@ class BL2_RLalgo:
             all_users_new_state.append(new_state)
             all_users_rew.append(user_reward)
         for u in range(self.numUsers):
-            # print("-"+str(u)+"-"+str(all_users_service_loc[u])+"-")
-            if self.ap_capacities[all_users_service_loc[u]] - self.ap_user_load[all_users_service_loc[u]] == 0:
-                print("*****************")
             computational_delay = COMPUTATIONAL_DELAY_SCALING_FACTOR*1/(self.ap_capacities[all_users_service_loc[u]] - self.ap_user_load[all_users_service_loc[u]])
             all_users_rew[u] -= computational_delay
         self.Rewards[:, t] = all_users_rew[:]
@@ -139,10 +174,7 @@ class BL2_RLalgo:
             cur_states = INITIAL_STATE
             print("=======",trial,"=======")
             for step in range(self.trial_len):
-                # print("==S=T=E=P==",step,"=======")
-                # print(cur_states)
                 actions = self.dqn_agent.select_action(envSt_to_agentSt_all(cur_states))
-                # actions = reshape_nn_outputs(actions)
                 new_states = self.env(cur_states, actions, t)
                 
                 if t>EPSILON_THRESHOLD:

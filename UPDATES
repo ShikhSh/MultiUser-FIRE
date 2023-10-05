@@ -1,3 +1,6 @@
+Sept 7th:
+- Add support for Location-Based Failures
+
 June 23:
 - Results
 - The three graphs averaged over 5 runs.
@@ -32,4 +35,3 @@ TODOs:
 6. How is reward & imp_wts used to update the network?
 1. Baselines -> to be implemented on the server
 --------------------------------
-
