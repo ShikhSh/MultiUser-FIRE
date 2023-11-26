@@ -25,18 +25,18 @@ class ReplayMemory(object):
 
     def __len__(self):
         return len(self.memory)
-
+    
 def gen_per_user_states_list():
     rsList = set()
-    # back_up_options = list(range(NUM_ACCESS_POINTS))
-    # back_up_options.append(NO_BACKUP)
+    back_up_options = list(range(NUM_ACCESS_POINTS))
+    back_up_options.append(NO_BACKUP)
     combinations = [
       list(range(NUM_ACCESS_POINTS)),#[0,1, 2],
       list(range(NUM_ACCESS_POINTS)),#[0,1,2],
       [0,1], # Anomaly/Not
-    #   back_up_options # Backup_loc: [0,1, 2]
+      back_up_options # Backup_loc: [0,1, 2]
     ]
-    stateList0=np.zeros((NUM_STATES_PER_USER,3), dtype = np.int)
+    stateList0=np.zeros((NUM_STATES_PER_USER,4), dtype = np.int)
     a=0
     for element in itertools.product(*combinations):
         stateList0[a,:]=element[:]
@@ -50,17 +50,17 @@ PER_USER_STATE_LIST, RARE_STATES = gen_per_user_states_list()
 # print(RARE_STATES)
 
 def gen_per_user_actions_list():
-    # back_up_options = list(range(NUM_ACCESS_POINTS))
-    # back_up_options.append(NO_BACKUP)
+    back_up_options = list(range(NUM_ACCESS_POINTS))
+    back_up_options.append(NO_BACKUP)
     actlists = [
         list(range( NUM_ACCESS_POINTS)),#[0,1, 2],
-        # back_up_options
+        back_up_options
     ]
-    actList0=np.zeros((NUM_ACTIONS_PER_USER))
+    actList0=np.zeros((NUM_ACTIONS_PER_USER,2))
     a=0
     # b=0
-    for element in actlists[0]:
-        actList0[a]=element
+    for element in itertools.product(*actlists):
+        actList0[a,:]=element
         a=a+1
     # print(actList0)
     return actList0
@@ -72,17 +72,21 @@ def get_tensor_state(state): # state_transformation
     return t
 
 def convert_to_tensor(state):
-    t = torch.tensor(np.array(state), dtype=torch.float32)
+    t = torch.tensor(state, dtype=torch.float32)
     return t
 
 def get_state_tuple(state): # state_transformation2
     st = PER_USER_STATE_LIST[state]
     return st
 
-def get_state_id(newUserLoc, newSvcLoc, anomaly):
-    stateName=np.array([int(newUserLoc),int(newSvcLoc),int(anomaly)])
+def get_state_id(newUserLoc, newSvcLoc, anomaly, newBackupLoc):
+    stateName=np.array([int(newUserLoc),int(newSvcLoc),int(anomaly),int(newBackupLoc)])
     new_state=np.where(np.all(PER_USER_STATE_LIST==stateName,axis=1))[0][0]
     return new_state
+
+def get_action_id(action_tuple):
+    new_action=np.where(np.all(PER_USER_ACTION_LIST==action_tuple,axis=1))[0][0]
+    return new_action
 
 '''
 Input: Numpy array (array of all the actions or their q-values -  dim = 1, shape = (user X action))

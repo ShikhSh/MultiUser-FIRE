@@ -1,12 +1,12 @@
-from imports import *
-from common_config import *
+from common_constants import *
 
 MAIN_ALGO_NAME = "MainAlgo"
 BL1_ALGO_NAME = "Baseline1"
 BL2_ALGO_NAME = "Baseline2"
 BL3_ALGO_NAME = "Baseline3"
+BL4_ALGO_NAME = "Baseline4"
 
-ALGO_NAMES = [MAIN_ALGO_NAME, BL1_ALGO_NAME, BL2_ALGO_NAME, BL3_ALGO_NAME]
+ALGO_NAMES = [MAIN_ALGO_NAME, BL1_ALGO_NAME, BL2_ALGO_NAME, BL3_ALGO_NAME, BL4_ALGO_NAME]
 
 class TrainerModel:
     def __init__(self, Rewards, runningAvg) -> None:
@@ -34,7 +34,7 @@ class OnlineModel:
         self.mean_NScompDelay_online =  online_obj.mean_NScompDelay_online
 
 def conv_to_tensor(x):
-  return torch.tensor([[x]], device=device, dtype = torch.float32)
+  return torch.tensor(np.array([[x]]), device=device, dtype = torch.float32)
 
 # Utility function:
 def path_creator(dir_path, generate_path = True):
@@ -65,9 +65,15 @@ def create_dir(dir_path = None, generate_path = True):
         path_creator(dir_path, generate_path)
 
         if LOCATION_BASED_FAILURE_ENABLED:
-            dir_path += "LocBasedRes" + str(abs(common_FAILED_AP_SERV_LOC_REW)) + "/"
+            dir_path += "LocBasedRes" + str(abs(common_FAILED_AP_SERV_LOC_REW)) + "_DT" + str(common_LOCATION_BASED_FAILURE_TIME) + "/"
         else:
             dir_path += "NoLocBasedFailures" + "/"
+        path_creator(dir_path, generate_path)
+
+        if RANDOM_USER_PATTERNS_ENABLED:
+            dir_path += "RandPatternsEn/"
+        else:
+            dir_path += "RandPatternsDis/"
         path_creator(dir_path, generate_path)
 
     return dir_path
@@ -98,7 +104,9 @@ def save_object(file_name, obj):
 
 def load_object(file_name):
     obj = None
-    with open(file_name, 'rb') as file:
-        obj = pickle.load(file)
-    return obj
-        
+    try:
+        with open(file_name, 'rb') as file:
+                obj = pickle.load(file)
+        return obj
+    except Exception as e:
+        return None

@@ -60,6 +60,7 @@ class RLalgo:
         self.actList=PER_USER_ACTION_LIST
         self.stateList=PER_USER_STATE_LIST
         self.rsList=RARE_STATES
+        print(self.rsList)
         print(self.actList)
 
         # Keep a track of the failed APs and how long will they take to recover
@@ -82,8 +83,8 @@ class RLalgo:
     Adds a failed state to 
     """
     def insert_failed_location(self, ap):
-        if ap in common_WEAK_AP_LIST and LOCATION_BASED_FAILURE_ENABLED:
-            self.failed_APs[ap] = 2
+        if ap in WEAK_AP_LIST and LOCATION_BASED_FAILURE_ENABLED:
+            self.failed_APs[ap] = LOCATION_BASED_FAILURE_TIME
     """
     1. Generate a random number for each AP for each iteration (used to decide if an anomaly has occurred or not)
     2. Store the number of users in each AP in each iteration (which is used to find computational delay later on)

@@ -2,11 +2,13 @@ import sys
 # setting path
 sys.path.append('./MainAlgo')
 sys.path.append('./Common')
+sys.path.append('./Baseline4')
 sys.path.append('./Baseline3')
 sys.path.append('./Baseline2')
 sys.path.append('./Baseline1')
 
 from MainAlgo.online_main import Online_Algo
+from Baseline4.online_main import BL4_Online_Algo
 from Baseline3.online_main import BL3_Online_Algo
 from Baseline2.online_main import BL2_Online_Algo
 from Baseline1.online_main import BL1_Online_Algo
@@ -56,11 +58,16 @@ class CoalatedResultsModel:
         self.mean_NSdelay_online_over_runs = []
         self.mean_NSstorage_online_over_runs = []
         self.mean_NScompDelay_online_over_runs = []
+        
+        self.trainer_obj_present = True
 
     def add_results(self, trainer, online_obj):
-        self.Rewards.append(trainer.Rewards)
-        self.runningAvg.append(trainer.runningAvg)
-
+        if trainer:
+            self.Rewards.append(trainer.Rewards)
+            self.runningAvg.append(trainer.runningAvg)
+        else:
+            self.trainer_obj_present = False
+            
         self.Reward_online.append(online_obj.Reward_online)
         self.runningAvg_online.append(online_obj.runningAvg_online)
         # self.min_ns_rew_len = self.min_ns_rew_len if len(online_obj.NSreward_online)
@@ -84,13 +91,18 @@ class CoalatedResultsModel:
         return np.mean(np.dstack(var),axis = axis)
     
     def generate_results(self):
-        self.Rewards = self.stack_n_mean(self.Rewards)
-        self.runningAvg = self.stack_n_mean(self.runningAvg)
+        if self.trainer_obj_present:
+            self.Rewards = self.stack_n_mean(self.Rewards)
+            self.runningAvg = self.stack_n_mean(self.runningAvg)
+            # self.NSreward_online = self.stack_n_mean(self.NSreward_online)
+            # self.REreward_online = self.stack_n_mean(self.REreward_online)
+        else:
+            self.Rewards = None
+            self.runningAvg = None
+        
         self.Reward_online = self.stack_n_mean(self.Reward_online)
         self.runningAvg_online = self.stack_n_mean(self.runningAvg_online)
-        # self.NSreward_online = self.stack_n_mean(self.NSreward_online)
-        # self.REreward_online = self.stack_n_mean(self.REreward_online)
-
+            
         self.mean_Reward_online = mean(self.mean_Reward_online_over_runs)
         
         self.mean_REreward_online = mean(self.mean_REreward_online_over_runs)
@@ -135,7 +147,7 @@ class Coalate_Results:
             # the path which is scanned for the objects of various runs
             obj = CoalatedResultsModel()
             self.algo_names_to_objects[algo] = obj
-            iteration_dirs = [os.path.join(path,filename) for filename in os.listdir(path) if os.path.isdir(os.path.join(path,filename))]
+            iteration_dirs = [os.path.join(path,filename) for filename in os.listdir(path) if os.path.isdir(os.path.join(path,filename)) and filename.isdigit()]
             for sub_dir in iteration_dirs:
                 # open pkl files in these, load the objects, add to class variables
                 print(sub_dir + "/")
@@ -152,9 +164,10 @@ class Coalate_Results:
             # Earlier, the plots were plotted iterating over the users
             # Same plots can be plotted after averaging over the 3rd dimension, which is the user's dimension
             obj.generate_results()
-            
-            gen_plot_rew(obj,dir=path)
-            gen_plot_runningAvg(obj,dir=path)
+            if not obj.Rewards is None:
+                gen_plot_rew(obj,dir=path)
+            if not obj.runningAvg is None:
+                gen_plot_runningAvg(obj,dir=path)
 
             initial_setup(None, dir = path)
             gen_online_plots(obj, dir = path)

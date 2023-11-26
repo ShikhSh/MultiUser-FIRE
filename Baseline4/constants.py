@@ -1,10 +1,9 @@
 from config import *
 
-INPUT_SHAPE = 3*NUM_USERS # adds the user number
+INPUT_SHAPE = 4*NUM_USERS # adds the user number
 BATCH_SIZE = 128#128#32#
 TARGET_UPDATE = 10
-# DIAG_DIRECTORY = "torch_diags_10APs/"
-# used for cost and migration dictionaries
+
 # LATENCY_MATRIX = None
 # if NUM_ACCESS_POINTS == 3:
 #     LATENCY_MATRIX = [[2.55316, 9.70525, 7.02418],
@@ -22,16 +21,16 @@ TARGET_UPDATE = 10
 #                       [6.21317, 6.2124, 5.31069, 4.21866, 6.59593, 3.06604, 3.95576, 2.55396, 5.85478],
 #                       [7.60077, 6.71018, 2.77417, 11.8622, 5.55827, 2.78874, 4.37348, 5.85478, 2.55313]]
 # MIGR_COST = np.zeros((NUM_ACCESS_POINTS, NUM_ACCESS_POINTS))
-# # STORAGE_COST_temp = np.zeros((NUM_ACCESS_POINTS))
+# STORAGE_COST_temp = np.zeros((NUM_ACCESS_POINTS))
 # for p in range(NUM_ACCESS_POINTS):
 #   diff = random.uniform(-0.5, 0.5)
-# #   STORAGE_COST_temp[p] = 5+diff
+#   STORAGE_COST_temp[p] = 5+diff
 #   for q in range(NUM_ACCESS_POINTS):
 #     diff = random.uniform(-0.5, 0.5)
 #     MIGR_COST[p][q] = LATENCY_MATRIX[p][q]+diff
 
 # COST_DICT = MIGR_COST#np.random.rand(NUM_ACCESS_POINTS,NUM_ACCESS_POINTS)
-# # STORAGE_COST = STORAGE_COST_temp#np.random.rand(NUM_ACCESS_POINTS)
+# STORAGE_COST = STORAGE_COST_temp#np.random.rand(NUM_ACCESS_POINTS)
 
 # ACTUAL_EPS = 0.01#0.15#
 # GAMMA = 0.9#0.85
@@ -43,7 +42,7 @@ TARGET_UPDATE = 10
 # LEARNING_RATE = 0.1 # learning rate
 # TAU = 0.125
 # NO_BACKUP = 100
-# # BACKUP_ACTION=101
+
 # USER_ACC_FACTOR=1.5
 # K_ = 20
 # PR_LU_TRANS = None
@@ -74,14 +73,14 @@ TARGET_UPDATE = 10
 # #ALPHA_T = 0.05
 # #ALPHA_U = 0.05
 
-# #EXPLORATION_FIXED_RATE = 3000
+#EXPLORATION_FIXED_RATE = 3000
 
 # Calculated:
 # states = <Lu,Ls,0/1,backup_loc>
-NUM_STATES_PER_USER = (NUM_ACCESS_POINTS*NUM_ACCESS_POINTS*2)
+NUM_STATES_PER_USER = (NUM_ACCESS_POINTS*NUM_ACCESS_POINTS*2*(NUM_ACCESS_POINTS+1))
 TOT_NUM_STATES = NUM_STATES_PER_USER^NUM_USERS
 # actions = <Ls,backup_loc>
-NUM_ACTIONS_PER_USER = (NUM_ACCESS_POINTS)
+NUM_ACTIONS_PER_USER = (NUM_ACCESS_POINTS*(NUM_ACCESS_POINTS+1))
 TOT_NUM_ACTIONS = NUM_ACTIONS_PER_USER*NUM_USERS
 
 INITIAL_STATE = []

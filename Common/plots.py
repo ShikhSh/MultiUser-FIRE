@@ -274,7 +274,7 @@ def gen_online_plots(online_obj, dir):
     #     print("**NO RE COMP_DELAY COST**")
 
 def generate_bar_graphs(coalated_results, dir):
-    x = ['IS-ReD', 'QL-NIS', 'QL-NB', 'QL-NRE']
+    x = ['IS-ReD', 'QL-NIS', 'QL-NB', 'QL-NRE', 'Greedy']
     
     path = dir + "rewards.jpg"
     y = []

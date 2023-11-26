@@ -46,8 +46,8 @@ def gen_per_user_states_list():
     return stateList0, rsList
 PER_USER_STATE_LIST, RARE_STATES = gen_per_user_states_list()
 # print(list(enumerate(PER_USER_STATE_LIST))) # <Lu,Ls,A/N,Lb>
-print("RARE_STATES:")
-print(RARE_STATES)
+# print("RARE_STATES:")
+# print(RARE_STATES)
 
 def gen_per_user_actions_list():
     # back_up_options = list(range(NUM_ACCESS_POINTS))
@@ -62,7 +62,7 @@ def gen_per_user_actions_list():
     for element in actlists[0]:
         actList0[a]=element
         a=a+1
-    print(actList0)
+    # print(actList0)
     return actList0
 PER_USER_ACTION_LIST = gen_per_user_actions_list()
 
@@ -72,7 +72,7 @@ def get_tensor_state(state): # state_transformation
     return t
 
 def convert_to_tensor(state):
-    t = torch.tensor(state, dtype=torch.float32)
+    t = torch.tensor(np.array(state), dtype=torch.float32)
     return t
 
 def get_state_tuple(state): # state_transformation2

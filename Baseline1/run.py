@@ -17,6 +17,8 @@ class Runner_BL1:
         trainer.run_algo()
         gen_plot_rew(trainer, sub_dir)
         gen_plot_runningAvg(trainer, sub_dir)
+        
+        trainer.dqn_agent.save_model(sub_dir + "policy_net.pt")
 
         trainer_model = TrainerModel(trainer.Rewards, trainer.runningAvg)
         save_object( sub_dir + "trainer_obj.pkl", trainer_model)
@@ -33,8 +35,10 @@ class Runner_BL1:
     def run_program(self):
         starting_dir = 0
         WORKING_DIR = create_dir()
-        if not self.start_afresh and len(os.listdir(WORKING_DIR)):
-            starting_dir = int(max(os.listdir(WORKING_DIR))) + 1
+        dir_content = os.listdir(WORKING_DIR)
+        dir_content = [int(entry) for entry in dir_content if entry.isdigit()]
+        if not self.start_afresh and len(dir_content):
+            starting_dir = int(max(dir_content)) + 1
 
         for i in range(TOT_RUNS):
             self.run_1_iteration(i+ starting_dir)

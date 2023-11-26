@@ -1,6 +1,6 @@
 from utils import *
 from online_const import *
-class BL2_Online_Algo():
+class BL4_Online_Algo():
     def __init__(self, tot_users = NUM_USERS, users_to_care_about = NUM_USERS):
         self.numAP=NUM_ACCESS_POINTS
         self.numActions = NUM_ACTIONS_PER_USER
@@ -68,6 +68,23 @@ class BL2_Online_Algo():
         self.ap_capacities = AP_CAPACITIES
         self.user_loads = USER_LOADS
         print("USERS to care about = " + str(self.users_to_care_about))
+        
+        self.generate_greedy_actions()
+
+        self.rare_event_counts = 0
+    
+    def generate_greedy_actions(self):
+        # data structures for greedy service backup locations
+        self.greedy_actions_with_backup = np.argsort(np.array(self.pr_lu_trans_online),axis=1)[:,-2:]
+        self.greedy_actions_with_backup[:, [0,1]] = self.greedy_actions_with_backup[:, [1,0]]
+        self.greedy_actions_with_backup = np.apply_along_axis(get_action_id, axis=1, arr=self.greedy_actions_with_backup)
+        print(self.greedy_actions_with_backup)
+
+        self.greedy_actions_no_backup = np.argsort(np.array(self.pr_lu_trans_online),axis=1)[:,-2:]
+        self.greedy_actions_no_backup[:, [0,1]] = self.greedy_actions_no_backup[:, [1,0]]
+        self.greedy_actions_no_backup[:,1] = 100
+        self.greedy_actions_no_backup = np.apply_along_axis(get_action_id, axis=1, arr=self.greedy_actions_no_backup)
+        print(self.greedy_actions_no_backup)
     
     def find_mean(self, arr):
         if len(arr) > 0:
@@ -90,6 +107,8 @@ class BL2_Online_Algo():
         self.mean_NSstorage_online = self.find_mean(self.NSstorage_online)
         self.mean_NScompDelay_online = self.find_mean(self.NScompDelay_online)
 
+        print(f"NumberOf RE - {self.rare_event_counts}")
+
     """
     Updates the failed location at every time step
     """
@@ -108,15 +127,31 @@ class BL2_Online_Algo():
     def insert_failed_location(self, ap):
         if ap in WEAK_AP_LIST and LOCATION_BASED_FAILURE_ENABLED:
             self.failed_APs[ap] = LOCATION_BASED_FAILURE_TIME
+    
+    def calc_backups_cost(self, new_actions, old_actions):
+        tot_cost = 0
 
-    def run(self, trained_obj):
+        for user in range(self.users_to_care_about):
+            old_backup_loc = int(self.actList[old_actions[user]][1])
+            new_backup_loc = int(self.actList[new_actions[user]][1])
+            if new_backup_loc!=self.noBackup:
+                tot_cost+=self.storageCost_online[new_backup_loc]
+                
+            if old_backup_loc != self.noBackup and old_backup_loc != new_backup_loc:
+                tot_cost+=self.migrationCost_online[old_backup_loc,new_backup_loc]
+        
+        return abs(tot_cost)
+
+    def run(self):
         for t in range(0,totalTS):
             self.update_failed_locations()
-
+            
             ap_user_load = np.zeros((self.numAP))
             random_nos_aps = np.random.rand(self.numAP)
+            rare_event_per_ap = random_nos_aps < actualEPS
             
             all_users_new_state = []
+            all_users_new_loc = []
             back_up_locs = []
             all_rewards = []
             new_service_locs = []
@@ -128,21 +163,22 @@ class BL2_Online_Algo():
                 user_action = self.actions[user]
                 prevUserLoc=int(self.stateList[user_state][0])
                 prevSvcLoc=int(self.stateList[user_state][1])
-                newSvcLoc=int(self.actList[user_action])
-                backupLoc=int(NO_BACKUP) # initialization
+                newSvcLoc=int(self.actList[user_action][0])
+                backupLoc=int(self.actList[user_action][1]) # initialization
                 user_prev_backup_loc = self.prev_backup_locs[user]
-                
+                                
                 storCost=0
                 if backupLoc!=self.noBackup:
                     storCost=self.storageCost_online[backupLoc]
-
+                
                 backup_migration_cost = 0
-                # if user_prev_backup_loc != self.noBackup and backupLoc!=self.noBackup and user_prev_backup_loc != backupLoc:
-                #     backup_migration_cost = self.migrationCost_online[user_prev_backup_loc,backupLoc]
-                    
+                if user_prev_backup_loc != self.noBackup and backupLoc!=self.noBackup and user_prev_backup_loc != backupLoc:
+                    backup_migration_cost = self.migrationCost_online[user_prev_backup_loc,backupLoc]
+
                 migration_cost=self.migrationCost_online[prevSvcLoc,newSvcLoc]
 
                 newUserLoc=np.random.choice(np.arange(0,self.numAP), 1, replace=False, p=self.pr_lu_trans_online[prevUserLoc,:])[0]
+                all_users_new_loc.append(newUserLoc)
                 #eligibility[state,action,t]=eligibility[state,action,t]+1
                 
                 ap_user_load[newSvcLoc] += self.user_loads[user]
@@ -154,38 +190,38 @@ class BL2_Online_Algo():
                     user_reward += common_FAILED_AP_SERV_LOC_REW
                     serv_loc_down = True
                     
-                rare_event_occured = random_nos_aps[prevSvcLoc] < actualEPS
+                rare_event_occured = rare_event_per_ap[prevSvcLoc]
                 
                 if not serv_loc_down and rare_event_occured and LOCATION_BASED_FAILURE_ENABLED:
                     self.insert_failed_location(newSvcLoc)
                 
                 #if random number is smaller than the sampling prob, rare event has occured
                 if serv_loc_down or rare_event_occured:
+                    # print(f"User: {user} - State: {user_state} - Action: {user_action} - Anomaly")
                     failureLoc= newSvcLoc
                     # check if there is backup
                     if backupLoc==self.noBackup:
-                        # print("NO BACKUP: State: ")#, stateList[state], "\t Action: ", actList[action])
+                        print(f"{t} - {prevSvcLoc} - {user} - NO BACKUP: State: ")#, stateList[state], "\t Action: ", actList[action])
                         user_reward+=NEGATIVE_REWARD-migration_cost
-                        self.REstorage_online.append(0)
-                    # else:
-                    #     if user_prev_backup_loc != self.noBackup and backupLoc!=self.noBackup and user_prev_backup_loc != backupLoc:#second condition is true for else block
-                    #         backup_migration_cost = self.migrationCost_online[user_prev_backup_loc,backupLoc]
-                    #     if backupLoc==failureLoc: # we dont want this to happen.
-                    #         print("BACKUP==FAILURE: State: ")#, stateList0[state], "\t Action: ", actList0[action])
-                    #         user_reward= NEGATIVE_REWARD-self.migrationCost_online[prevSvcLoc,newSvcLoc]-storCost-backup_migration_cost
-                    #         self.REstorage_online.append(-storCost)
-                    #     else:
-                    #         user_reward = -self.commDelay_online[newUserLoc][backupLoc]-self.migrationCost_online[prevSvcLoc][newSvcLoc]-storCost-backup_migration_cost
-                    #         self.REstorage_online.append(-storCost)
-                    #         delay=-self.commDelay_online[newUserLoc][backupLoc]
-                    #         self.REdelay_online.append(delay)
+                    else:
+                        if user_prev_backup_loc != self.noBackup and backupLoc!=self.noBackup and user_prev_backup_loc != backupLoc:#second condition is true for else block
+                            backup_migration_cost = self.migrationCost_online[user_prev_backup_loc,backupLoc]
+                        if backupLoc==failureLoc: # we dont want this to happen.
+                            print(f"{t} - {prevSvcLoc} - {user} - BACKUP==FAILURE: State: ")#, stateList0[state], "\t Action: ", actList0[action])
+                            user_reward+= NEGATIVE_REWARD-self.migrationCost_online[prevSvcLoc,newSvcLoc]-storCost-backup_migration_cost
+                        else:
+                            user_reward+= -self.commDelay_online[newUserLoc][backupLoc]-self.migrationCost_online[prevSvcLoc][newSvcLoc]-storCost-backup_migration_cost
+                            delay=-self.commDelay_online[newUserLoc][backupLoc]
+                            self.REdelay_online.append(delay)
+                    self.REstorage_online.append(-storCost)
                     self.REreward_online.append(user_reward)
                     migr=-migration_cost-backup_migration_cost
                     self.REmigration_online.append(migr)
                     
-                    nextState=get_state_id(newUserLoc, newSvcLoc, 1)
+                    nextState=get_state_id(newUserLoc, newSvcLoc, 1, backupLoc)
                     user_anomalies.append(True)
                 else: # no rare event has occured.
+                    # print(f"User: {user} - State: {user_state} - Action: {user_action} -")
                     MigrationCost=migration_cost+backup_migration_cost
                     CommDelayCost=self.commDelay_online[newUserLoc][newSvcLoc]
                     
@@ -194,7 +230,7 @@ class BL2_Online_Algo():
                     self.NSmigration_online.append(-MigrationCost)
                     self.NSdelay_online.append(-CommDelayCost)
                     self.NSstorage_online.append(-storCost)
-                    nextState=get_state_id(newUserLoc, newSvcLoc, 0)
+                    nextState=get_state_id(newUserLoc, newSvcLoc, 0, backupLoc)
                     user_anomalies.append(False)
 
                 all_rewards.append(user_reward)
@@ -221,13 +257,17 @@ class BL2_Online_Algo():
             self.Reward_online[t,:] = all_rewards[:]
             self.prev_backup_locs = back_up_locs
 
-            Q_estimates = trained_obj.dqn_agent.get_q_value(envSt_to_agentSt_all(all_users_new_state))
-            Q_estimates = Q_estimates.reshape((NUM_USERS, NUM_ACTIONS_PER_USER))
-            predicted_actions = []
-            for user in range(self.users_to_care_about):
-                policy = softmax(Q_estimates[user].cpu())
-                actionNew=np.random.choice(np.arange(0,NUM_ACTIONS_PER_USER), 1, replace=False, p=policy)[0]
-                predicted_actions.append(actionNew)
+            # Q_estimates = trained_obj.dqn_agent.get_q_value(envSt_to_agentSt_all(all_users_new_state))
+            # Q_estimates = Q_estimates.reshape((NUM_USERS, NUM_ACTIONS_PER_USER))
+            if rare_event_per_ap.any():
+                self.rare_event_counts += sum(rare_event_per_ap) #1
+            
+            predicted_actions = self.greedy_actions_with_backup[all_users_new_loc]
+            if abs(self.rare_event_counts/((t+1)*self.numAP)*NEGATIVE_REWARD) < self.calc_backups_cost(predicted_actions, self.actions):
+                predicted_actions = self.greedy_actions_no_backup[all_users_new_loc]
+                print(f"Action no backup: {abs(self.rare_event_counts/((t+1)*self.numAP)*NEGATIVE_REWARD)} < _____")
+            else:
+                print(f"Action with backup: {abs(self.rare_event_counts/((t+1)*self.numAP)*NEGATIVE_REWARD)} < {self.calc_backups_cost(predicted_actions, self.actions)}")
 
             self.Action[t+1, :]=predicted_actions
             

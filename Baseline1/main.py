@@ -57,6 +57,7 @@ class BL1_RLalgo:
         self.actList=PER_USER_ACTION_LIST
         self.stateList=PER_USER_STATE_LIST
         # self.rsList=RARE_STATES
+        print(RARE_STATES)
         print(self.actList)
 
         # Keep a track of the failed APs and how long will they take to recover
@@ -78,8 +79,8 @@ class BL1_RLalgo:
     Adds a failed state to 
     """
     def insert_failed_location(self, ap):
-        if ap in common_WEAK_AP_LIST and LOCATION_BASED_FAILURE_ENABLED:
-            self.failed_APs[ap] = 2
+        if ap in WEAK_AP_LIST and LOCATION_BASED_FAILURE_ENABLED:
+            self.failed_APs[ap] = LOCATION_BASED_FAILURE_TIME
 
     def env(self, cur_states, actions, t):
         

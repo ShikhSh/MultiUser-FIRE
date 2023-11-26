@@ -1,0 +1,9 @@
+Baseline 1 (new scenario)
+
+  - No importance sampling:
+    - Imp Wts
+    - Anomaly Sampling Distr
+    - T_anomaly
+    - U_normal
+
+To run the program:

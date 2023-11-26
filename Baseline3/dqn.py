@@ -240,6 +240,11 @@ class DQN_wrapper:
 
     def train_target_pytorch(self):
         self.target_net.load_state_dict(self.policy_net.state_dict())
-    def save_model(self, name):
-        name = "./"+name
-        torch.save(self.policy_net.state_dict(), name)
+    
+    def save_model(self, path):
+        torch.save(self.policy_net.state_dict(), path)
+    
+    def load_model(self, PATH = './policy_net.pt', input_dim = INPUT_SHAPE, output_dim = TOT_NUM_ACTIONS):
+        self.policy_net = DQN(input_dim, output_dim).to(device)
+        self.policy_net.load_state_dict(torch.load(PATH))
+        self.policy_net.eval()
