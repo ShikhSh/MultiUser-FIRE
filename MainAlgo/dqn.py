@@ -240,6 +240,7 @@ class DQN_wrapper:
 
     def train_target_pytorch(self):
         self.target_net.load_state_dict(self.policy_net.state_dict())
+    
     def save_model(self, name = './policy_net.pt'):
         torch.save(self.policy_net.state_dict(), name)
     

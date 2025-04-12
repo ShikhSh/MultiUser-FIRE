@@ -1,5 +1,8 @@
 from common_constants import *
 
+USER_LOADS = np.ones((common_NUM_USERS))
+AP_CAPACITIES = np.ones((common_NUM_ACCESS_POINTS))*common_AP_CAPACITY
+
 MAIN_ALGO_NAME = "MainAlgo"
 BL1_ALGO_NAME = "Baseline1"
 BL2_ALGO_NAME = "Baseline2"
@@ -110,3 +113,11 @@ def load_object(file_name):
         return obj
     except Exception as e:
         return None
+
+'''
+Input: Numpy array (array of all the actions or their q-values -  dim = 1, shape = (user X action))
+Output: Reshaped Numpy Array (reshaped array of the shape of (user, actions))
+'''
+
+def reshape_nn_outputs(outputs, users):
+    return outputs.reshape((users, -1))

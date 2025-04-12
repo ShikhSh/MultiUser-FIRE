@@ -1,34 +1,15 @@
 import sys
 # setting path
-sys.path.append('./MainAlgo')
-sys.path.append('./Common')
-sys.path.append('./Baseline4')
-sys.path.append('./Baseline3')
-sys.path.append('./Baseline2')
-sys.path.append('./Baseline1')
+sys.path.append('../Common')
+from dqn import DQN_wrapper
+from online_main import *
 
-from MainAlgo.online_main import Online_Algo
-from Baseline4.online_main import BL4_Online_Algo
-from Baseline3.online_main import BL3_Online_Algo
-from Baseline2.online_main import BL2_Online_Algo
-from Baseline1.online_main import BL1_Online_Algo
-
-from common_config import *
-from online_const import *
-from common_utils import *
-from plots import *
-
-class CoalatedResultsModel:
+class Model_RiskAware_RiskTaking:
     def __init__(self) -> None:
         self.numUsers = common_NUM_USERS
 
-        self.Rewards = []
-        self.runningAvg = []
-
         self.Reward_online = []
         self.runningAvg_online = []
-        # self.NSreward_online = []
-        # self.REreward_online = []
 
         self.mean_Reward_online = None
 
@@ -58,22 +39,10 @@ class CoalatedResultsModel:
         self.mean_NSdelay_online_over_runs = []
         self.mean_NSstorage_online_over_runs = []
         self.mean_NScompDelay_online_over_runs = []
-        
-        self.trainer_obj_present = True
 
-    def add_results(self, trainer, online_obj):
-        if trainer:
-            self.Rewards.append(trainer.Rewards)
-            self.runningAvg.append(trainer.runningAvg)
-        else:
-            self.trainer_obj_present = False
-            
+    def add_results(self, online_obj):
         self.Reward_online.append(online_obj.Reward_online)
         self.runningAvg_online.append(online_obj.runningAvg_online)
-        # self.min_ns_rew_len = self.min_ns_rew_len if len(online_obj.NSreward_online)
-        # self.min_re_rew_len = self.min_re_rew_len if len(online_obj.REreward_online)
-        # self.NSreward_online.append(online_obj.NSreward_online)
-        # self.REreward_online.append(online_obj.REreward_online)
 
         self.mean_Reward_online_over_runs.append(online_obj.mean_Reward_online)
         self.mean_REreward_online_over_runs.append(online_obj.mean_REreward_online)
@@ -91,14 +60,6 @@ class CoalatedResultsModel:
         return np.mean(np.dstack(var),axis = axis)
     
     def generate_results(self):
-        if self.trainer_obj_present:
-            self.Rewards = self.stack_n_mean(self.Rewards)
-            self.runningAvg = self.stack_n_mean(self.runningAvg)
-            # self.NSreward_online = self.stack_n_mean(self.NSreward_online)
-            # self.REreward_online = self.stack_n_mean(self.REreward_online)
-        else:
-            self.Rewards = None
-            self.runningAvg = None
         
         self.Reward_online = self.stack_n_mean(self.Reward_online)
         self.runningAvg_online = self.stack_n_mean(self.runningAvg_online)
@@ -131,53 +92,56 @@ class CoalatedResultsModel:
         self.stdev_NSstorage_online = stdev(self.mean_NSstorage_online_over_runs)
         self.stdev_NScompDelay_online = stdev(self.mean_NScompDelay_online_over_runs)
 
-class Coalate_Results:
-    def __init__(self):
-        self.algos_names = ALGO_NAMES
-        self.algo_names_to_objects = {}
-    
-    def load_data_from_dir(self, path, algo):
-        trainer = load_object(path+"trainer_obj.pkl")
-        online_obj = load_object(path+"online_obj.pkl")
-        algo.add_results(trainer, online_obj)
+class Run_RiskAware_RiskTaking:
+    def create_wrapper_obj(self):
+        NUM_ACTIONS_PER_USER = (common_NUM_ACCESS_POINTS*(common_NUM_ACCESS_POINTS+1))
+        TOT_NUM_ACTIONS = NUM_ACTIONS_PER_USER*common_NUM_USERS
+        ma_obj = DQN_wrapper(4*common_NUM_USERS, TOT_NUM_ACTIONS)
+        NUM_ACTIONS_PER_USER = (common_NUM_ACCESS_POINTS)
+        TOT_NUM_ACTIONS = NUM_ACTIONS_PER_USER*common_NUM_USERS
+        bl3_obj = DQN_wrapper(3*common_NUM_USERS, TOT_NUM_ACTIONS)
+        return ma_obj, bl3_obj
 
-    def coalate(self):
-        for algo in self.algos_names:
-            path = create_dir(dir_path = "./" + algo + "/diags/", generate_path = False)
-            # the path which is scanned for the objects of various runs
-            obj = CoalatedResultsModel()
-            self.algo_names_to_objects[algo] = obj
-            iteration_dirs = [os.path.join(path,filename) for filename in os.listdir(path) if os.path.isdir(os.path.join(path,filename)) and filename.isdigit()]
-            for sub_dir in iteration_dirs:
-                # open pkl files in these, load the objects, add to class variables
-                print(sub_dir + "/")
-                self.load_data_from_dir(sub_dir + "/", obj)
+    def run(self):
+        curr_dir = create_dir()
+        initial_setup(None, dir = curr_dir)
+
+        etas = [0, 0.2, 0.4, 0.6, 0.8, 1]
+        ma_path = create_dir(dir_path = "../MainAlgo/diags/", generate_path = False)
+        bl3_path = create_dir(dir_path = "../Baseline3/diags/", generate_path = False)
+
+        iteration_dirs = [filename for filename in os.listdir(ma_path) if os.path.isdir(os.path.join(ma_path,filename)) and filename.isdigit()]
+        eta_to_models = {}
         
-                # now we have all the trained and online algorithms with us,
-                # find averages for them, and generate results
-                
-                # All the matrices will have the following dimensions:
-                # 1. Users
-                # 2. Time Steps
-                # 3. Iterations -> new dimension added
+        for eta in etas:
+            obj = Model_RiskAware_RiskTaking()
+            for fn in iteration_dirs:
+                ma_iteration_dir = os.path.join(ma_path,fn)
+                bl3_iteration_dir = os.path.join(bl3_path,fn)
+                print(ma_iteration_dir)
+                print(bl3_iteration_dir)
+                ma_obj, bl3_obj = self.create_wrapper_obj()
+                ma_obj.load_model(ma_iteration_dir + "/policy_net.pt")
+                bl3_obj.load_model(bl3_iteration_dir + "/policy_net.pt")
 
+                online_algo = Combined_Online_Algo(eta, ma_obj, bl3_obj)
+                online_algo.run()
+                obj.add_results(online_algo)
+                sys.stdout.flush()
             # Earlier, the plots were plotted iterating over the users
             # Same plots can be plotted after averaging over the 3rd dimension, which is the user's dimension
             obj.generate_results()
-            # if not obj.Rewards is None:
-            #     gen_plot_rew(obj,dir=path)
-            # if not obj.runningAvg is None:
-            #     gen_plot_runningAvg(obj,dir=path)
+            eta_to_models[eta] = obj
+            sys.stdout.flush()
 
-            # initial_setup(None, dir = path)
-            # gen_online_plots(obj, dir = path)
-            # clean()
-
-        # Now we have results of all the 4 algorithms, their mean, their stdevs
-        # We need to generate the bar graphs now.
-        dir = create_dir()
-        generate_bar_graphs(self, dir)
+        for k in eta_to_models.keys():
+            print(f"ETA = {k}")
+            gen_online_plots(obj, curr_dir, True)
+        sys.stdout.flush()
+        generate_risk_aware_n_risk_taking_graphs(eta_to_models, curr_dir)
+        sys.stdout.flush()
+        clean()
 
 if __name__ == '__main__':
-    runner = Coalate_Results()
-    runner.coalate()
+    runner = Run_RiskAware_RiskTaking()
+    runner.run()

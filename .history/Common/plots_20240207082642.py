@@ -36,21 +36,14 @@ def gen_basic_plot(items_count, var, path, x_label = '', y_label = ''):
 def gen_basic_bar_plot(path,x, y, yerr,  x_label = '', y_label = ''):
     plt.clf()
 
-    # plt.rcParams['axes.axisbelow'] = True
-    # plt.rc('axes', axisbelow=True)
-
-    plt.bar(x ,y, yerr=yerr, align='center', alpha=0.8, ecolor='black', capsize=10, width=0.5, color=['hotpink','lightblue','lightgreen','gold','bisque'], edgecolor='k', zorder = 10000)
+    plt.bar(x ,y, yerr=yerr, align='center', alpha=0.5, ecolor='black', capsize=10, width=0.5, color=['hotpink','lightblue','lightgreen','gold','bisque'], edgecolor='k',zorder=3)
     plt.rc('ytick', labelsize=18)
     plt.rc('xtick', labelsize=18)
     
     plt.ylabel(y_label,fontsize=22)
     plt.xlabel(x_label,fontsize=22)
     plt.tight_layout()
-    plt.grid(True, linestyle='--', alpha=0.7, zorder = -10000)
-
-    # plt.rcParams['axes.axisbelow'] = True
-    # plt.rc('axes', axisbelow=True)
-
+    plt.grid(True, linestyle='--', alpha=0.7, zorder=-1)
     if common_RUNNING_ON_COLAB:
         plt.show()
     else:

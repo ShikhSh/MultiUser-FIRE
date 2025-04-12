@@ -164,14 +164,14 @@ class Coalate_Results:
             # Earlier, the plots were plotted iterating over the users
             # Same plots can be plotted after averaging over the 3rd dimension, which is the user's dimension
             obj.generate_results()
-            # if not obj.Rewards is None:
-            #     gen_plot_rew(obj,dir=path)
-            # if not obj.runningAvg is None:
-            #     gen_plot_runningAvg(obj,dir=path)
+            if not obj.Rewards is None:
+                gen_plot_rew(obj,dir=path)
+            if not obj.runningAvg is None:
+                gen_plot_runningAvg(obj,dir=path)
 
-            # initial_setup(None, dir = path)
-            # gen_online_plots(obj, dir = path)
-            # clean()
+            initial_setup(None, dir = path)
+            gen_online_plots(obj, dir = path)
+            clean()
 
         # Now we have results of all the 4 algorithms, their mean, their stdevs
         # We need to generate the bar graphs now.
